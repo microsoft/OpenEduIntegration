@@ -1,6 +1,12 @@
 # Open Edu Integration
 
-Provides open-source ETL solutions for the EdTech community, built with Azure Data Factory.
+Provides open-source ETL solutions for the EdTech community, built with [Azure Data Factory (ADF)](https://docs.microsoft.com/en-us/azure/data-factory/introduction#:~:text=Azure%20Data%20Factory%20is%20the%20platform%20that%20solves,orchestrating%20and%20automating%20data%20movement%20and%20data%20transformation.).
+
+The initial focus of this repository is to provide customers and partners with examples of solving common integration needs with regard to integrating with [School Data Sync (SDS)](https://docs.microsoft.com/en-us/schooldatasync/).
+
+SDS offers several convenient options for setting up data ingestion (see [Deploying School Data Sync](https://docs.microsoft.com/en-us/schooldatasync/deploying-school-data-sync)), but there are times when additional ETL is needed. This repository shares examples of how to deal with some of those challenges.
+See [Options for Partners Integrating with School Data Sync Using Azure Data Factory](https://github.com/microsoft/OpenEduIntegration/blob/main/ADFtoSDS-partner-whitepaper.pdf) for an overview of ADF based options for integrating with SDS.
+
 
 ## Contributing
 
