@@ -1,0 +1,2340 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": {
+      "type": "string",
+      "metadata": "Data Factory name"
+    },
+    "stcontososdsetl": { "type": "string" },
+    "SDSBlobStorage": { "type": "string" }
+  },
+  "variables": { "factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]" },
+  "resources": [
+    {
+      "name": "[concat(parameters('factoryName'), '/sync_all')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "get_current_time",
+            "type": "SetVariable",
+            "dependsOn": [],
+            "userProperties": [],
+            "typeProperties": {
+              "variableName": "execTime",
+              "value": {
+                "value": "@{formatDateTime(convertTimeZone(utcnow(), 'UTC', 'Eastern Standard Time'), 'yyyy-MM-ddTHHmm_ss')}",
+                "type": "Expression"
+              }
+            }
+          },
+          {
+            "name": "Validate_then_upload_profile1",
+            "type": "ExecutePipeline",
+            "dependsOn": [
+              {
+                "activity": "Get_data_and_split_to_profiles",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "pipeline": {
+                "referenceName": "Validate_then_Upload",
+                "type": "PipelineReference"
+              },
+              "waitOnCompletion": true,
+              "parameters": {
+                "directory": {
+                  "value": "@{variables('execTime')}/profile1",
+                  "type": "Expression"
+                },
+                "sdsProfileId": {
+                  "value": "@pipeline().globalParameters.profileId_1",
+                  "type": "Expression"
+                }
+              }
+            }
+          },
+          {
+            "name": "Validate_then_upload_profile2",
+            "type": "ExecutePipeline",
+            "dependsOn": [
+              {
+                "activity": "Get_data_and_split_to_profiles",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "pipeline": {
+                "referenceName": "Validate_then_Upload",
+                "type": "PipelineReference"
+              },
+              "waitOnCompletion": true,
+              "parameters": {
+                "directory": {
+                  "value": "@{variables('execTime')}/profile2",
+                  "type": "Expression"
+                },
+                "sdsProfileId": {
+                  "value": "@pipeline().globalParameters.profileId_2",
+                  "type": "Expression"
+                }
+              }
+            }
+          },
+          {
+            "name": "Get_data_and_split_to_profiles",
+            "type": "ExecutePipeline",
+            "dependsOn": [
+              {
+                "activity": "get_current_time",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "pipeline": {
+                "referenceName": "Get_data_and_split_to_profiles",
+                "type": "PipelineReference"
+              },
+              "waitOnCompletion": true,
+              "parameters": {
+                "directory": {
+                  "value": "@{variables('execTime')}",
+                  "type": "Expression"
+                },
+                "sourceDirectory": {
+                  "value": "@pipeline().parameters.sourceDirectory",
+                  "type": "Expression"
+                }
+              }
+            }
+          },
+          {
+            "name": "Validate_then_upload_remainder",
+            "type": "ExecutePipeline",
+            "dependsOn": [
+              {
+                "activity": "Get_data_and_split_to_profiles",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "pipeline": {
+                "referenceName": "Validate_then_Upload",
+                "type": "PipelineReference"
+              },
+              "waitOnCompletion": true,
+              "parameters": {
+                "directory": {
+                  "value": "@{variables('execTime')}/remainder",
+                  "type": "Expression"
+                },
+                "sdsProfileId": {
+                  "value": "@pipeline().globalParameters.profileId_3",
+                  "type": "Expression"
+                }
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "sourceDirectory": {
+            "type": "string",
+            "defaultValue": "source"
+          }
+        },
+        "variables": { "execTime": { "type": "String" } },
+        "annotations": [],
+        "lastPublishTime": "2020-09-22T19:55:38Z"
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/pipelines/Validate_then_Upload')]", "[concat(variables('factoryId'), '/pipelines/Get_data_and_split_to_profiles')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Validate_then_Upload')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "validate_SDS_CSVs",
+            "type": "ExecuteDataFlow",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "dataflow": {
+                "referenceName": "validate_SDS_CSVs",
+                "type": "DataFlowReference",
+                "parameters": {},
+                "datasetParameters": {
+                  "sourceSchoolsCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/school.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceStudentCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/student.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceTeacherCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/teacher.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceStudentEnrollmentCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/studentenrollment.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceTeacherRosterCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/teacherroster.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceSectionCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/section.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidationErrorsCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedSectionCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedSchoolCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedStudentCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedTeacherCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedTeacherRosterCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkValidatedStudentEnrollmentsCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/validated",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkInvalidSchoolCsv": { "directory": "@{pipeline().parameters.directory}/invalid" },
+                  "sinkInvalidStudentCsv": { "directory": "@{pipeline().parameters.directory}/invalid" },
+                  "sinkInvalidTeacherCsv": { "directory": "@{pipeline().parameters.directory}/invalid" },
+                  "sinkInvalidEnrollments": { "directory": "@{pipeline().parameters.directory}/invalid" },
+                  "sinkInvalidTeacherRosterCsv": { "directory": "@{pipeline().parameters.directory}/invalid" },
+                  "sinkInvalidSectionCsv": { "directory": "@{pipeline().parameters.directory}/invalid" }
+                }
+              },
+              "staging": {},
+              "compute": {
+                "coreCount": 8,
+                "computeType": "General"
+              }
+            }
+          },
+          {
+            "name": "check_validation_errors",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@pipeline().parameters.directory",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "validation.log"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "upload_if_validation_succeeds",
+            "description": "Checks the number of errors against the configured validation error threshold (note that 1 is subtracted to account for the header in the validation.log)",
+            "type": "IfCondition",
+            "dependsOn": [
+              {
+                "activity": "check_validation_errors",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "set_record_count_array",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "expression": {
+                "value": "@and(\nless(sub(int(activity('check_validation_errors').output.count),1), pipeline().globalParameters.validationErrorThreshold),\nor(not(pipeline().globalParameters.checkForEmptyFilesBeforeSending), not(contains(variables('recordCountArray'), 1)))\n)",
+                "type": "Expression"
+              },
+              "ifFalseActivities": [
+                {
+                  "name": "Send_validation_errors_email_report",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "Send_email_report",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "subject": {
+                        "value": "ADF: SDS upload validation failed for @{pipeline().parameters.directory}",
+                        "type": "Expression"
+                      },
+                      "body": {
+                        "value": "The validation failed for @{pipeline().parameters.directory}\\n\nThis profile data was not sent to SDS because of the failed validation check.\\n\\n\nRecord counts:\\n\nschool.csv - @{variables('recordCountArray')[0]}\\n\nsection.csv - @{variables('recordCountArray')[1]}\\n\nstudent.csv - @{variables('recordCountArray')[2]}\\n\nstudentenrollment.csv - @{variables('recordCountArray')[3]}\\n\nteacher.csv - @{variables('recordCountArray')[4]}\\n\nteacherroster.csv - @{variables('recordCountArray')[5]}\\n\\n\nValidation error count: @{activity('check_validation_errors').output.count}\\n\\n\nSee ADF run log for additional details.\\n\\n\n[Note that the record counts in this message have a max value of 5000 (or 4999 plus the header record), so treat a count of 5000 (or 4999) to signify a record count that is some value greater than 5000.]\n",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ],
+              "ifTrueActivities": [
+                {
+                  "name": "Upload_to_SDS",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "Upload_to_SDS",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "directory": {
+                        "value": "@{pipeline().parameters.directory}/validated",
+                        "type": "Expression"
+                      },
+                      "sdsProfileId": {
+                        "value": "@pipeline().parameters.sdsProfileId",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "Send_email_report",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [
+                    {
+                      "activity": "Upload_to_SDS",
+                      "dependencyConditions": [ "Succeeded" ]
+                    }
+                  ],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "Send_email_report",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "subject": {
+                        "value": "ADF: successful SDS upload for @{pipeline().parameters.directory}",
+                        "type": "Expression"
+                      },
+                      "body": {
+                        "value": "ADF upload to SDS for @{pipeline().parameters.directory} sent successfully.\\n\nCheck sds.microsoft.com for updates on the status of the sync.\\n\\n\nRecord counts for sent files:\\n\nschool.csv - @{variables('recordCountArray')[0]}\\n\nsection.csv - @{variables('recordCountArray')[1]}\\n\nstudent.csv - @{variables('recordCountArray')[2]}\\n\nstudentenrollment.csv - @{variables('recordCountArray')[3]}\\n\nteacher.csv - @{variables('recordCountArray')[4]}\\n\nteacherroster.csv - @{variables('recordCountArray')[5]}\\n\\n\nValidation error count: @{activity('check_validation_errors').output.count}\\n\\n\nSee ADF run log for additional details.\\n\\n\n[Note that the record counts in this message have a max value of 5000 (or 4999 plus the header record), so treat a count of 5000 (or 4999) to signify a record count that is some value greater than 5000.]",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                },
+                {
+                  "name": "Send_email_report1",
+                  "type": "ExecutePipeline",
+                  "dependsOn": [
+                    {
+                      "activity": "Upload_to_SDS",
+                      "dependencyConditions": [ "Failed" ]
+                    }
+                  ],
+                  "userProperties": [],
+                  "typeProperties": {
+                    "pipeline": {
+                      "referenceName": "Send_email_report",
+                      "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                      "subject": {
+                        "value": "ADF: failed SDS upload for @{pipeline().parameters.directory}",
+                        "type": "Expression"
+                      },
+                      "body": {
+                        "value": "ADF: failed SDS upload for @{pipeline().parameters.directory}\\n\nThis may have been caused by an invalid profile id.\\n\nSee ADF run logs for more details.\\n\n\nRecord counts for files:\\n\nschool.csv - @{variables('recordCountArray')[0]}\\n\nsection.csv - @{variables('recordCountArray')[1]}\\n\nstudent.csv - @{variables('recordCountArray')[2]}\\n\nstudentenrollment.csv - @{variables('recordCountArray')[3]}\\n\nteacher.csv - @{variables('recordCountArray')[4]}\\n\nteacherroster.csv - @{variables('recordCountArray')[5]}\\n\\n\nValidation error count: @{activity('check_validation_errors').output.count}\\n\\n\nSee ADF run log for additional details.\\n\\n\n[Note that the record counts in this message have a max value of 5000 (or 4999 plus the header record), so treat a count of 5000 (or 4999) to signify a record count that is some value greater than 5000.]",
+                        "type": "Expression"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "check_school_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "school.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "check_section_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "section.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "check_student_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "student.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "check_studentenrollment_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "studentenrollment.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "check_teacher_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "teacher.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "check_teacherroster_csv",
+            "type": "Lookup",
+            "dependsOn": [
+              {
+                "activity": "validate_SDS_CSVs",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@{pipeline().parameters.directory}/validated",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "teacherroster.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "dataset": {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "set_record_count_array",
+            "type": "SetVariable",
+            "dependsOn": [
+              {
+                "activity": "check_school_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "check_section_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "check_student_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "check_studentenrollment_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "check_teacher_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "check_teacherroster_csv",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "variableName": "recordCountArray",
+              "value": {
+                "value": "@createArray(\nsub(activity('check_school_csv').output.count,1),\nsub(activity('check_section_csv').output.count,1),\nsub(activity('check_student_csv').output.count,1),\nsub(activity('check_studentenrollment_csv').output.count,1),\nsub(activity('check_teacher_csv').output.count,1),\nsub(activity('check_teacherroster_csv').output.count,1)\n)",
+                "type": "Expression"
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "directory": { "type": "string" },
+          "sdsProfileId": { "type": "string" }
+        },
+        "variables": {
+          "SASUrlParts": {
+            "type": "Array",
+            "defaultValue": []
+          },
+          "recordCountArray": {
+            "type": "Array",
+            "defaultValue": []
+          }
+        },
+        "folder": { "name": "Sub pipelines" },
+        "annotations": [],
+        "lastPublishTime": "2020-09-24T12:32:23Z"
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/dataflows/validate_SDS_CSVs')]", "[concat(variables('factoryId'), '/datasets/CsvFile')]", "[concat(variables('factoryId'), '/pipelines/Send_email_report')]", "[concat(variables('factoryId'), '/pipelines/Upload_to_SDS')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Get_data_and_split_to_profiles')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "copy_into_inbound",
+            "type": "Copy",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": false,
+                  "wildcardFolderPath": {
+                    "value": "@pipeline().parameters.sourceDirectory",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "*.csv"
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "sink": {
+                "type": "DelimitedTextSink",
+                "storeSettings": { "type": "AzureBlobFSWriteSettings" },
+                "formatSettings": {
+                  "type": "DelimitedTextWriteSettings",
+                  "quoteAllText": true,
+                  "fileExtension": ".csv"
+                }
+              },
+              "enableStaging": false,
+              "translator": {
+                "type": "TabularTranslator",
+                "typeConversion": true,
+                "typeConversionSettings": {
+                  "allowDataTruncation": true,
+                  "treatBooleanAsNumber": false
+                }
+              }
+            },
+            "inputs": [
+              {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": { "directory": "na" }
+              }
+            ],
+            "outputs": [
+              {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": {
+                  "directory": {
+                    "value": "@{pipeline().parameters.directory}/inbound",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "split_into_profiles",
+            "type": "ExecuteDataFlow",
+            "dependsOn": [
+              {
+                "activity": "copy_into_inbound",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "dataflow": {
+                "referenceName": "split_into_profiles",
+                "type": "DataFlowReference",
+                "parameters": {},
+                "datasetParameters": {
+                  "sourceSchoolsCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/school.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceStudentCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/student.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceTeacherCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/teacher.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceStudentEnrollmentCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/studentenrollment.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceTeacherRosterCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/teacherroster.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sourceSectionCsv": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/inbound/section.csv",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSchoolCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSchoolCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSchoolCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentEnrollmentCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentEnrollmentCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkStudentEnrollmentCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherRosterCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherRosterCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkTeacherRosterCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSectionCsvProfile1": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile1",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSectionCsvProfile2": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/profile2",
+                      "type": "Expression"
+                    }
+                  },
+                  "sinkSectionCsvRemainder": {
+                    "directory": {
+                      "value": "@{pipeline().parameters.directory}/remainder",
+                      "type": "Expression"
+                    }
+                  }
+                }
+              },
+              "staging": {},
+              "compute": {
+                "coreCount": 8,
+                "computeType": "General"
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "directory": { "type": "string" },
+          "sourceDirectory": { "type": "string" }
+        },
+        "variables": { "execTime": { "type": "String" } },
+        "folder": { "name": "Sub pipelines" },
+        "annotations": [],
+        "lastPublishTime": "2020-09-18T16:47:45Z"
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/datasets/CsvFile')]", "[concat(variables('factoryId'), '/dataflows/split_into_profiles')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/validate_SDS_CSVs')]",
+      "type": "Microsoft.DataFactory/factories/dataflows",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+          "sources": [
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceSchoolsCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceStudentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceTeacherCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceStudentEnrollmentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceTeacherRosterCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceSectionCsv"
+            }
+          ],
+          "sinks": [
+            {
+              "dataset": {
+                "referenceName": "SDS_Validation_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidationErrorsCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedSectionCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedSchoolCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedStudentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedTeacherCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedTeacherRosterCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkValidatedStudentEnrollmentsCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidSchoolCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidStudentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidTeacherCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidEnrollments"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidTeacherRosterCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkInvalidSectionCsv"
+            }
+          ],
+          "transformations": [
+            { "name": "schoolValidations" },
+            { "name": "schoolErrors" },
+            { "name": "ConditionalSplit1" },
+            { "name": "studentValidations" },
+            { "name": "ConditionalSplit8" },
+            { "name": "studentErrors" },
+            { "name": "teacherValidations" },
+            { "name": "ConditionalSplit2" },
+            { "name": "teacherErrors" },
+            { "name": "enrollmentValidations" },
+            { "name": "enrollmentErrors" },
+            { "name": "rosterValidations" },
+            { "name": "teacherRosterErrors" },
+            { "name": "Union1" },
+            { "name": "addDate" },
+            { "name": "ConditionalSplit3" },
+            { "name": "ConditionalSplit4" },
+            { "name": "sectionValidations" },
+            { "name": "ConditionalSplit9" },
+            { "name": "sectionErrors" },
+            { "name": "JoinSchool" },
+            { "name": "JoinTeacherRoster" },
+            { "name": "JoinTeacher" },
+            { "name": "JoinStudentEnrollments" },
+            { "name": "DedupSectionRecords" },
+            { "name": "RenameWithTeacherUsername" },
+            { "name": "RenameSectionColumns" },
+            { "name": "RenameWithTeacherId" },
+            { "name": "validEnrollmentsWithValidStudents" },
+            { "name": "validEnrollmentsWithValidStudentsFinal" }
+          ],
+          "script": "source(output(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: true,\n\tignoreNoFilesFound: false) ~> sourceSchoolsCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: true,\n\tignoreNoFilesFound: false) ~> sourceStudentCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: true,\n\tignoreNoFilesFound: false) ~> sourceTeacherCsv\nsource(output(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: true,\n\tignoreNoFilesFound: false) ~> sourceStudentEnrollmentCsv\nsource(output(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceTeacherRosterCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceSectionCsv\nsourceSchoolsCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidName = isNull(Name) || length({Name}) == 0) ~> schoolValidations\nConditionalSplit1@invalidSchoolRecords derive(type = \"school\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidName, 'Invalid Name; ', '')\r\n),\n\t\tsisId = {SIS ID}) ~> schoolErrors\nschoolValidations split(invalidSISID || invalidName,\n\tdisjoint: false) ~> ConditionalSplit1@(invalidSchoolRecords, validSchoolRecords)\nsourceStudentCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidSchoolSISID = isNull({School SIS ID}) || length({School SIS ID}) == 0,\n\t\tinvalidUsername = isNull(Username) || length(Username) == 0,\n\t\tinvalidFirstName = isNull({First Name}) || length({First Name}) == 0,\n\t\tinvalidLastName = isNull({Last Name}) || length({Last Name}) == 0) ~> studentValidations\nstudentValidations split(invalidSISID || invalidSchoolSISID ||invalidUsername || invalidFirstName || invalidLastName,\n\tdisjoint: false) ~> ConditionalSplit8@(invalidStudentRecords, validStudentRecords)\nConditionalSplit8@invalidStudentRecords derive(type = \"student\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidSchoolSISID, 'Invalid School SIS ID; ', ''),\r\n    iif(invalidUsername, 'Invalid Username; ', ''),\r\n    iif(invalidFirstName, 'Invalid First Name; ', ''),\r\n    iif(invalidLastName, 'Invalid Last Name; ', '')\r\n),\n\t\tsisId = {SIS ID}) ~> studentErrors\nsourceTeacherCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidSchoolSISID = isNull({School SIS ID}) || length({School SIS ID}) == 0,\n\t\tinvalidUsername = isNull(Username) || length(Username) == 0 || !regexMatch(Username, `^[A-za-z0-9.\\\\-_!#~^\\\\\\\\\\u0027]{1,64}$`),\n\t\tinvalidFirstName = isNull({First Name}) || length({First Name}) == 0,\n\t\tinvalidLastName = isNull({Last Name}) || length({Last Name}) == 0) ~> teacherValidations\nteacherValidations split(invalidSISID || invalidSchoolSISID || invalidUsername || invalidFirstName || invalidLastName,\n\tdisjoint: false) ~> ConditionalSplit2@(invalidTeacherRecords, validTeacherRecords)\nConditionalSplit2@invalidTeacherRecords derive(sisId = {SIS ID},\n\t\ttype = \"teacher\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidSchoolSISID, 'Invalid School SIS ID; ', ''),\r\n    iif(invalidUsername, 'Invalid Username; ', ''),\r\n    iif(invalidFirstName, 'Invalid First Name; ', ''),\r\n    iif(invalidLastName, 'Invalid Last Name; ', '')\r\n)) ~> teacherErrors\nsourceStudentEnrollmentCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidSectionSISID = isNull({Section SIS ID}) || length({Section SIS ID}) == 0 || !regexMatch({Section SIS ID}, `^[a-zA-Z0-9_.\\u0027-]+$`)) ~> enrollmentValidations\nConditionalSplit4@invalidEnrollments derive(sisId = {SIS ID},\n\t\ttype = \"studentenrollment\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidSectionSISID, 'Invalid Section SIS ID; ', '')\r\n)) ~> enrollmentErrors\nsourceTeacherRosterCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidSectionSISID = isNull({Section SIS ID}) || length({Section SIS ID}) == 0 || !regexMatch({Section SIS ID}, `^[a-zA-Z0-9_.\\u0027-]+$`)) ~> rosterValidations\nConditionalSplit3@invalidTeacherRosterRecords derive(sisId = {SIS ID},\n\t\ttype = \"teacherroster\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidSectionSISID, 'Invalid Section SIS ID; ', '')\r\n)) ~> teacherRosterErrors\nschoolErrors, studentErrors, teacherErrors, enrollmentErrors, teacherRosterErrors, sectionErrors union(byName: true)~> Union1\nUnion1 derive(date = currentUTC()) ~> addDate\nrosterValidations split(invalidSISID || invalidSectionSISID,\n\tdisjoint: false) ~> ConditionalSplit3@(invalidTeacherRosterRecords, validTeacherRosterRecords)\nenrollmentValidations split(invalidSISID || invalidSectionSISID,\n\tdisjoint: false) ~> ConditionalSplit4@(invalidEnrollments, validEnrollments)\nsourceSectionCsv derive(invalidSISID = isNull({SIS ID}) || length({SIS ID}) == 0,\n\t\tinvalidSchoolSISID = isNull({School SIS ID}) || length({School SIS ID}) == 0,\n\t\tinvalidSectionName = isNull({Section Name}) || length({Section Name}) == 0) ~> sectionValidations\nsectionValidations split(invalidSISID || invalidSchoolSISID || invalidSectionName,\n\tdisjoint: false) ~> ConditionalSplit9@(invalidSectionRecords, validSectionRecords)\nConditionalSplit9@invalidSectionRecords derive(sisId = {SIS ID},\n\t\ttype = \"section\",\n\t\terrors = concat(\r\n    iif(invalidSISID, 'Invalid SIS ID; ', ''), \r\n    iif(invalidSchoolSISID, 'Invalid Section SIS ID; ', ''),\r\n    iif(invalidSectionName, 'Invalid Section Name; ', '')\r\n)) ~> sectionErrors\nConditionalSplit9@validSectionRecords, ConditionalSplit1@validSchoolRecords join({School SIS ID} == ConditionalSplit1@validSchoolRecords@{SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinSchool\nRenameSectionColumns, ConditionalSplit3@validTeacherRosterRecords join(RenameSectionColumns@{Section SIS ID} == ConditionalSplit3@validTeacherRosterRecords@{Section SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinTeacherRoster\nRenameWithTeacherId, ConditionalSplit2@validTeacherRecords join({Teacher SIS ID} == {SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinTeacher\nDedupSectionRecords, validEnrollmentsWithValidStudentsFinal join(DedupSectionRecords@{Section SIS ID} == validEnrollmentsWithValidStudentsFinal@{Section SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinStudentEnrollments\nRenameWithTeacherUsername aggregate(groupBy({Section SIS ID}),\n\teach(match(!in(['Section SIS ID'],name)), $$ = first($$))) ~> DedupSectionRecords\nJoinTeacher select(mapColumn(\n\t\t{Section SIS ID},\n\t\t{School SIS ID} = RenameWithTeacherId@{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus = RenameWithTeacherId@Status,\n\t\t{Teacher SIS ID},\n\t\t{Teacher Username} = Username\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenameWithTeacherUsername\nJoinSchool select(mapColumn(\n\t\t{Section SIS ID} = ConditionalSplit9@validSectionRecords@{SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenameSectionColumns\nJoinTeacherRoster select(mapColumn(\n\t\t{Section SIS ID} = RenameSectionColumns@{Section SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus,\n\t\t{Teacher SIS ID} = {SIS ID}\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> RenameWithTeacherId\nConditionalSplit4@validEnrollments, ConditionalSplit8@validStudentRecords join(ConditionalSplit4@validEnrollments@{SIS ID} == ConditionalSplit8@validStudentRecords@{SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> validEnrollmentsWithValidStudents\nvalidEnrollmentsWithValidStudents select(mapColumn(\n\t\t{Section SIS ID},\n\t\t{Student SIS ID} = ConditionalSplit8@validStudentRecords@{SIS ID}\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> validEnrollmentsWithValidStudentsFinal\naddDate sink(input(\n\t\tdate as string,\n\t\tschoolId as string,\n\t\ttype as string,\n\t\tsisId as string,\n\t\terrors as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['validation.log'],\n\tmapColumn(\n\t\tdate,\n\t\ttype,\n\t\terrors,\n\t\tsisId\n\t),\n\tpartitionBy('hash', 1)) ~> sinkValidationErrorsCsv\nDedupSectionRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['section.csv'],\n\tmapColumn(\n\t\t{SIS ID} = {Section SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedSectionCsv\nConditionalSplit1@validSchoolRecords sink(input(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['school.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\tName,\n\t\t{School Number},\n\t\t{School NCES_ID},\n\t\t{State ID},\n\t\t{Grade Low},\n\t\t{Grade High},\n\t\t{Principal SIS ID},\n\t\t{Principal Name},\n\t\t{Principal Secondary Email},\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tCountry,\n\t\tZip,\n\t\tPhone,\n\t\tZone\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedSchoolCsv\nConditionalSplit8@validStudentRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['student.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Secondary Email},\n\t\t{Student Number},\n\t\t{Middle Name},\n\t\tGrade,\n\t\tStatus,\n\t\tBirthdate,\n\t\t{Graduation Year}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedStudentCsv\nConditionalSplit2@validTeacherRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacher.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Teacher Number},\n\t\tStatus,\n\t\t{Middle Name},\n\t\t{Secondary Email},\n\t\tTitle,\n\t\tQualification\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedTeacherCsv\nRenameWithTeacherUsername sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacherroster.csv'],\n\tmapColumn(\n\t\t{SIS ID} = {Teacher SIS ID},\n\t\t{Section SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedTeacherRosterCsv\nJoinStudentEnrollments sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['studentenrollment.csv'],\n\tmapColumn(\n\t\t{Section SIS ID} = DedupSectionRecords@{Section SIS ID},\n\t\t{SIS ID} = {Student SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkValidatedStudentEnrollmentsCsv\nConditionalSplit1@invalidSchoolRecords sink(input(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_school_records.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\tName,\n\t\t{School Number},\n\t\t{School NCES_ID},\n\t\t{State ID},\n\t\t{Grade Low},\n\t\t{Grade High},\n\t\t{Principal SIS ID},\n\t\t{Principal Name},\n\t\t{Principal Secondary Email},\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tCountry,\n\t\tZip,\n\t\tPhone,\n\t\tZone\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidSchoolCsv\nConditionalSplit8@invalidStudentRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_student_records.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Secondary Email},\n\t\t{Student Number},\n\t\t{Middle Name},\n\t\tGrade,\n\t\tStatus,\n\t\tBirthdate,\n\t\t{Graduation Year}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidStudentCsv\nConditionalSplit2@invalidTeacherRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_teacher_records.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Teacher Number},\n\t\tStatus,\n\t\t{Middle Name},\n\t\t{Secondary Email},\n\t\tTitle,\n\t\tQualification\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidTeacherCsv\nConditionalSplit4@invalidEnrollments sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_studentenrollment_records.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidEnrollments\nConditionalSplit3@invalidTeacherRosterRecords sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_teacherroster_records.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidTeacherRosterCsv\nConditionalSplit9@invalidSectionRecords sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['invalid_section_records.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkInvalidSectionCsv"
+        }
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/datasets/SDS_School_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Student_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Teacher_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_StudentEnrollment_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_TeacherRoster_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Section_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Validation_csv')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/CsvFile')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": {
+              "value": "sds",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "quoteChar": "\""
+        },
+        "schema": []
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/split_into_profiles')]",
+      "type": "Microsoft.DataFactory/factories/dataflows",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "description": "Splits the incoming set of SDS formatted csv files into 3 separate sets, and writes out the resulting sets of csv files to folders called profile1, profile2, and profile3",
+        "type": "MappingDataFlow",
+        "typeProperties": {
+          "sources": [
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceSchoolsCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceStudentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceTeacherCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceStudentEnrollmentCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceTeacherRosterCsv"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sourceSectionCsv"
+            }
+          ],
+          "sinks": [
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSchoolCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSchoolCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_School_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSchoolCsvRemainder"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Student_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentCsvRemainder"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Teacher_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherCsvRemainder"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentEnrollmentCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentEnrollmentCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_StudentEnrollment_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkStudentEnrollmentCsvRemainder"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherRosterCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherRosterCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_TeacherRoster_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkTeacherRosterCsvRemainder"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSectionCsvProfile1"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSectionCsvProfile2"
+            },
+            {
+              "dataset": {
+                "referenceName": "SDS_Section_csv",
+                "type": "DatasetReference"
+              },
+              "name": "sinkSectionCsvRemainder"
+            }
+          ],
+          "transformations": [
+            { "name": "splitSchools" },
+            { "name": "splitStudents" },
+            { "name": "splitTeachers" },
+            { "name": "Join1" },
+            { "name": "splitEnrollments" },
+            { "name": "Join2" },
+            { "name": "splitTeacherroster" },
+            { "name": "splitSections" }
+          ],
+          "script": "source(output(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceSchoolsCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceStudentCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceTeacherCsv\nsource(output(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceStudentEnrollmentCsv\nsource(output(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceTeacherRosterCsv\nsource(output(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> sourceSectionCsv\nsourceSchoolsCsv split({SIS ID} == 'sch1' || {SIS ID} == 'sch2',\n\t{SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitSchools@(profile1, profile2, remainder)\nsourceStudentCsv split({School SIS ID} == 'sch1' || {School SIS ID} == 'sch2',\n\t{School SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitStudents@(profile1, profile2, remainder)\nsourceTeacherCsv split({School SIS ID} == 'sch1' || {School SIS ID} == 'sch2',\n\t{School SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitTeachers@(profile1, profile2, remainder)\nsourceStudentEnrollmentCsv, sourceSectionCsv join({Section SIS ID} == sourceSectionCsv@{SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1 split({School SIS ID} == 'sch1' || {School SIS ID} == 'sch2',\n\t{School SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitEnrollments@(profile1, profile2, remainder)\nsourceTeacherRosterCsv, sourceSectionCsv join({Section SIS ID} == sourceSectionCsv@{SIS ID},\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join2\nJoin2 split({School SIS ID} == 'sch1' || {School SIS ID} == 'sch2',\n\t{School SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitTeacherroster@(profile1, profile2, remainder)\nsourceSectionCsv split({School SIS ID} == 'sch1' || {School SIS ID} == 'sch2',\n\t{School SIS ID} == 'sch3',\n\tdisjoint: false) ~> splitSections@(profile1, profile2, remainder)\nsplitSchools@profile1 sink(input(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['school.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\tName,\n\t\t{School Number},\n\t\t{School NCES_ID},\n\t\t{State ID},\n\t\t{Grade Low},\n\t\t{Grade High},\n\t\t{Principal SIS ID},\n\t\t{Principal Name},\n\t\t{Principal Secondary Email},\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tCountry,\n\t\tZip,\n\t\tPhone,\n\t\tZone\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSchoolCsvProfile1\nsplitSchools@profile2 sink(input(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['school.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\tName,\n\t\t{School Number},\n\t\t{School NCES_ID},\n\t\t{State ID},\n\t\t{Grade Low},\n\t\t{Grade High},\n\t\t{Principal SIS ID},\n\t\t{Principal Name},\n\t\t{Principal Secondary Email},\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tCountry,\n\t\tZip,\n\t\tPhone,\n\t\tZone\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSchoolCsvProfile2\nsplitSchools@remainder sink(input(\n\t\t{SIS ID} as string,\n\t\tName as string,\n\t\t{School Number} as string,\n\t\t{School NCES_ID} as string,\n\t\t{State ID} as string,\n\t\t{Grade Low} as string,\n\t\t{Grade High} as string,\n\t\t{Principal SIS ID} as string,\n\t\t{Principal Name} as string,\n\t\t{Principal Secondary Email} as string,\n\t\tAddress as string,\n\t\tCity as string,\n\t\tState as string,\n\t\tCountry as string,\n\t\tZip as string,\n\t\tPhone as string,\n\t\tZone as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['school.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\tName,\n\t\t{School Number},\n\t\t{School NCES_ID},\n\t\t{State ID},\n\t\t{Grade Low},\n\t\t{Grade High},\n\t\t{Principal SIS ID},\n\t\t{Principal Name},\n\t\t{Principal Secondary Email},\n\t\tAddress,\n\t\tCity,\n\t\tState,\n\t\tCountry,\n\t\tZip,\n\t\tPhone,\n\t\tZone\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSchoolCsvRemainder\nsplitStudents@profile1 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['student.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Secondary Email},\n\t\t{Student Number},\n\t\t{Middle Name},\n\t\tGrade,\n\t\tStatus,\n\t\tBirthdate,\n\t\t{Graduation Year}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentCsvProfile1\nsplitStudents@profile2 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['student.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Secondary Email},\n\t\t{Student Number},\n\t\t{Middle Name},\n\t\tGrade,\n\t\tStatus,\n\t\tBirthdate,\n\t\t{Graduation Year}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentCsvProfile2\nsplitStudents@remainder sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Secondary Email} as string,\n\t\t{Student Number} as string,\n\t\t{Middle Name} as string,\n\t\tGrade as string,\n\t\tStatus as string,\n\t\tBirthdate as string,\n\t\t{Graduation Year} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['student.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Secondary Email},\n\t\t{Student Number},\n\t\t{Middle Name},\n\t\tGrade,\n\t\tStatus,\n\t\tBirthdate,\n\t\t{Graduation Year}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentCsvRemainder\nsplitTeachers@profile1 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacher.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Teacher Number},\n\t\tStatus,\n\t\t{Middle Name},\n\t\t{Secondary Email},\n\t\tTitle,\n\t\tQualification\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherCsvProfile1\nsplitTeachers@profile2 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacher.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Teacher Number},\n\t\tStatus,\n\t\t{Middle Name},\n\t\t{Secondary Email},\n\t\tTitle,\n\t\tQualification\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherCsvProfile2\nsplitTeachers@remainder sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\tUsername as string,\n\t\tPassword as string,\n\t\t{State ID} as string,\n\t\t{Teacher Number} as string,\n\t\tStatus as string,\n\t\t{Middle Name} as string,\n\t\t{Secondary Email} as string,\n\t\tTitle as string,\n\t\tQualification as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacher.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{First Name},\n\t\t{Last Name},\n\t\tUsername,\n\t\tPassword,\n\t\t{State ID},\n\t\t{Teacher Number},\n\t\tStatus,\n\t\t{Middle Name},\n\t\t{Secondary Email},\n\t\tTitle,\n\t\tQualification\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherCsvRemainder\nsplitEnrollments@profile1 sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['studentenrollment.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitEnrollments@profile1@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentEnrollmentCsvProfile1\nsplitEnrollments@profile2 sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['studentenrollment.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitEnrollments@profile2@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentEnrollmentCsvProfile2\nsplitEnrollments@remainder sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['studentenrollment.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitEnrollments@remainder@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkStudentEnrollmentCsvRemainder\nsplitTeacherroster@profile1 sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacherroster.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitTeacherroster@profile1@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherRosterCsvProfile1\nsplitTeacherroster@profile2 sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacherroster.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitTeacherroster@profile2@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherRosterCsvProfile2\nsplitTeacherroster@remainder sink(input(\n\t\t{Section SIS ID} as string,\n\t\t{SIS ID} as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['teacherroster.csv'],\n\tmapColumn(\n\t\t{Section SIS ID},\n\t\t{SIS ID} = splitTeacherroster@remainder@{SIS ID}\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkTeacherRosterCsvRemainder\nsplitSections@profile1 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['section.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSectionCsvProfile1\nsplitSections@profile2 sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['section.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSectionCsvProfile2\nsplitSections@remainder sink(input(\n\t\t{SIS ID} as string,\n\t\t{School SIS ID} as string,\n\t\t{Section Name} as string,\n\t\t{Section Number} as string,\n\t\t{Term SIS ID} as string,\n\t\t{Term Name} as string,\n\t\t{Term StartDate} as string,\n\t\t{Term EndDate} as string,\n\t\t{Course SIS ID} as string,\n\t\t{Course Name} as string,\n\t\t{Course Number} as string,\n\t\t{Course Description} as string,\n\t\t{Course Subject} as string,\n\t\tPeriods as string,\n\t\tStatus as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tpartitionFileNames:['section.csv'],\n\tmapColumn(\n\t\t{SIS ID},\n\t\t{School SIS ID},\n\t\t{Section Name},\n\t\t{Section Number},\n\t\t{Term SIS ID},\n\t\t{Term Name},\n\t\t{Term StartDate},\n\t\t{Term EndDate},\n\t\t{Course SIS ID},\n\t\t{Course Name},\n\t\t{Course Number},\n\t\t{Course Description},\n\t\t{Course Subject},\n\t\tPeriods,\n\t\tStatus\n\t),\n\tpartitionBy('hash', 1),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkSectionCsvRemainder"
+        }
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/datasets/SDS_School_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Student_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Teacher_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_StudentEnrollment_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_TeacherRoster_csv')]", "[concat(variables('factoryId'), '/datasets/SDS_Section_csv')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_School_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "Name",
+            "type": "String"
+          },
+          {
+            "name": "School Number",
+            "type": "String"
+          },
+          {
+            "name": "School NCES_ID",
+            "type": "String"
+          },
+          {
+            "name": "State ID",
+            "type": "String"
+          },
+          {
+            "name": "Grade Low",
+            "type": "String"
+          },
+          {
+            "name": "Grade High",
+            "type": "String"
+          },
+          {
+            "name": "Principal SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "Principal Name",
+            "type": "String"
+          },
+          {
+            "name": "Principal Secondary Email",
+            "type": "String"
+          },
+          {
+            "name": "Address",
+            "type": "String"
+          },
+          {
+            "name": "City",
+            "type": "String"
+          },
+          {
+            "name": "State",
+            "type": "String"
+          },
+          {
+            "name": "Country",
+            "type": "String"
+          },
+          {
+            "name": "Zip",
+            "type": "String"
+          },
+          {
+            "name": "Phone",
+            "type": "String"
+          },
+          {
+            "name": "Zone",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_Student_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "School SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "First Name",
+            "type": "String"
+          },
+          {
+            "name": "Last Name",
+            "type": "String"
+          },
+          {
+            "name": "Username",
+            "type": "String"
+          },
+          {
+            "name": "Password",
+            "type": "String"
+          },
+          {
+            "name": "State ID",
+            "type": "String"
+          },
+          {
+            "name": "Secondary Email",
+            "type": "String"
+          },
+          {
+            "name": "Student Number",
+            "type": "String"
+          },
+          {
+            "name": "Middle Name",
+            "type": "String"
+          },
+          {
+            "name": "Grade",
+            "type": "String"
+          },
+          {
+            "name": "Status",
+            "type": "String"
+          },
+          {
+            "name": "Birthdate",
+            "type": "String"
+          },
+          {
+            "name": "Graduation Year",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_Teacher_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "School SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "First Name",
+            "type": "String"
+          },
+          {
+            "name": "Last Name",
+            "type": "String"
+          },
+          {
+            "name": "Username",
+            "type": "String"
+          },
+          {
+            "name": "Password",
+            "type": "String"
+          },
+          {
+            "name": "State ID",
+            "type": "String"
+          },
+          {
+            "name": "Teacher Number",
+            "type": "String"
+          },
+          {
+            "name": "Status",
+            "type": "String"
+          },
+          {
+            "name": "Middle Name",
+            "type": "String"
+          },
+          {
+            "name": "Secondary Email",
+            "type": "String"
+          },
+          {
+            "name": "Title",
+            "type": "String"
+          },
+          {
+            "name": "Qualification",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_StudentEnrollment_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "Section SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "SIS ID",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_TeacherRoster_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "Section SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "SIS ID",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_Section_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "School SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "Section Name",
+            "type": "String"
+          },
+          {
+            "name": "Section Number",
+            "type": "String"
+          },
+          {
+            "name": "Term SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "Term Name",
+            "type": "String"
+          },
+          {
+            "name": "Term StartDate",
+            "type": "String"
+          },
+          {
+            "name": "Term EndDate",
+            "type": "String"
+          },
+          {
+            "name": "Course SIS ID",
+            "type": "String"
+          },
+          {
+            "name": "Course Name",
+            "type": "String"
+          },
+          {
+            "name": "Course Number",
+            "type": "String"
+          },
+          {
+            "name": "Course Description",
+            "type": "String"
+          },
+          {
+            "name": "Course Subject",
+            "type": "String"
+          },
+          {
+            "name": "Periods",
+            "type": "String"
+          },
+          {
+            "name": "Status",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_Validation_csv')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('stcontososdsetl')]",
+          "type": "LinkedServiceReference"
+        },
+        "parameters": { "directory": { "type": "string" } },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobFSLocation",
+            "folderPath": {
+              "value": "@dataset().directory",
+              "type": "Expression"
+            },
+            "fileSystem": "sds"
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "firstRowAsHeader": true,
+          "quoteChar": "\""
+        },
+        "schema": [
+          {
+            "name": "date",
+            "type": "String"
+          },
+          {
+            "name": "schoolId",
+            "type": "String"
+          },
+          {
+            "name": "type",
+            "type": "String"
+          },
+          {
+            "name": "sisId",
+            "type": "String"
+          },
+          {
+            "name": "errors",
+            "type": "String"
+          }
+        ]
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Send_email_report')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "GetBearerToken",
+            "type": "WebActivity",
+            "dependsOn": [
+              {
+                "activity": "GetAdminPassword",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "GetClientSecretForSdsApi",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": true
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@pipeline().globalParameters.clientLoginUrl",
+                "type": "Expression"
+              },
+              "method": "POST",
+              "headers": { "Content-Type": "application/x-www-form-urlencoded" },
+              "body": {
+                "value": "grant_type=password&client_id=@{pipeline().globalParameters.clientId}&client_secret=@{activity('GetClientSecretForSdsApi').output.value}&scope=https://graph.microsoft.com/.default&userName=@{pipeline().globalParameters.userName}&password=@{activity('GetAdminPassword').output.value}",
+                "type": "Expression"
+              }
+            }
+          },
+          {
+            "name": "sendMail",
+            "type": "WebActivity",
+            "dependsOn": [
+              {
+                "activity": "GetBearerToken",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "https://graph.microsoft.com/v1.0/me/sendMail",
+                "type": "Expression"
+              },
+              "method": "POST",
+              "headers": {
+                "Authorization": {
+                  "value": "@concat('Bearer ',activity('GetBearerToken').output.access_token)",
+                  "type": "Expression"
+                }
+              },
+              "body": {
+                "value": "{\"message\":{\"subject\":\"@{pipeline().parameters.subject}\",\"body\":{\"contentType\":\"Text\",\"content\":\"@{pipeline().parameters.body}\"},\"toRecipients\":@{pipeline().globalParameters.emailAddresses}}}",
+                "type": "Expression"
+              }
+            }
+          },
+          {
+            "name": "GetAdminPassword",
+            "type": "WebActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@{pipeline().globalParameters.SdsAdminPasswordKeyVaultUrl}?api-version=7.0",
+                "type": "Expression"
+              },
+              "method": "GET",
+              "headers": {},
+              "authentication": {
+                "type": "MSI",
+                "resource": "https://vault.azure.net"
+              }
+            }
+          },
+          {
+            "name": "GetClientSecretForSdsApi",
+            "type": "WebActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@{pipeline().globalParameters.ClientSecretForSdsApiKeyVaultUrl}?api-version=7.0",
+                "type": "Expression"
+              },
+              "method": "GET",
+              "headers": {},
+              "authentication": {
+                "type": "MSI",
+                "resource": "https://vault.azure.net"
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "subject": { "type": "string" },
+          "body": { "type": "string" }
+        },
+        "variables": {
+          "SASUrlParts": {
+            "type": "Array",
+            "defaultValue": []
+          }
+        },
+        "folder": { "name": "Sub pipelines" },
+        "annotations": [],
+        "lastPublishTime": "2020-09-22T15:58:49Z"
+      },
+      "dependsOn": []
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/Upload_to_SDS')]",
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "activities": [
+          {
+            "name": "GetBearerToken",
+            "type": "WebActivity",
+            "dependsOn": [
+              {
+                "activity": "GetAdminPassword",
+                "dependencyConditions": [ "Succeeded" ]
+              },
+              {
+                "activity": "GetClientSecretForSdsApi",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": true
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@pipeline().globalParameters.clientLoginUrl",
+                "type": "Expression"
+              },
+              "method": "POST",
+              "headers": { "Content-Type": "application/x-www-form-urlencoded" },
+              "body": {
+                "value": "grant_type=password&client_id=@{pipeline().globalParameters.clientId}&client_secret=@{activity('GetClientSecretForSdsApi').output.value}&scope=https://graph.microsoft.com/.default&userName=@{pipeline().globalParameters.userName}&password=@{activity('GetAdminPassword').output.value}",
+                "type": "Expression"
+              }
+            }
+          },
+          {
+            "name": "GetUploadUrl",
+            "type": "WebActivity",
+            "dependsOn": [
+              {
+                "activity": "GetBearerToken",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "https://graph.microsoft.com/beta/education/synchronizationProfiles/@{pipeline().parameters.sdsProfileId}/uploadUrl",
+                "type": "Expression"
+              },
+              "method": "GET",
+              "headers": {
+                "Authorization": {
+                  "value": "@concat('Bearer ',activity('GetBearerToken').output.access_token)",
+                  "type": "Expression"
+                }
+              }
+            }
+          },
+          {
+            "name": "setSASUrlParts",
+            "type": "SetVariable",
+            "dependsOn": [
+              {
+                "activity": "GetUploadUrl",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "userProperties": [],
+            "typeProperties": {
+              "variableName": "SASUrlParts",
+              "value": {
+                "value": "@split(activity('getUploadUrl').output.value,'?')",
+                "type": "Expression"
+              }
+            }
+          },
+          {
+            "name": "uploadCsvFilesToSDS",
+            "description": "Copies the sds formatted csv files into the SDS blob storage container for the configured sync profile.\n",
+            "type": "Copy",
+            "dependsOn": [
+              {
+                "activity": "setSASUrlParts",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "source": {
+                "type": "DelimitedTextSource",
+                "storeSettings": {
+                  "type": "AzureBlobFSReadSettings",
+                  "recursive": true,
+                  "wildcardFolderPath": {
+                    "value": "@pipeline().parameters.directory",
+                    "type": "Expression"
+                  },
+                  "wildcardFileName": "*.csv",
+                  "enablePartitionDiscovery": false
+                },
+                "formatSettings": { "type": "DelimitedTextReadSettings" }
+              },
+              "sink": {
+                "type": "DelimitedTextSink",
+                "storeSettings": { "type": "AzureBlobStorageWriteSettings" },
+                "formatSettings": {
+                  "type": "DelimitedTextWriteSettings",
+                  "quoteAllText": true,
+                  "fileExtension": ".csv"
+                }
+              },
+              "enableStaging": false
+            },
+            "inputs": [
+              {
+                "referenceName": "CsvFile",
+                "type": "DatasetReference",
+                "parameters": {
+                  "directory": {
+                    "value": "na",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ],
+            "outputs": [
+              {
+                "referenceName": "SDS_syncprofile_storage",
+                "type": "DatasetReference",
+                "parameters": {
+                  "sasUriParam": {
+                    "value": "@{variables('SASUrlParts')[0]}?@{variables('SASUrlParts')[1]}",
+                    "type": "Expression"
+                  },
+                  "sdsProfileId": {
+                    "value": "@pipeline().parameters.sdsProfileId",
+                    "type": "Expression"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "VerifyUploadAndStartSync",
+            "type": "WebActivity",
+            "dependsOn": [
+              {
+                "activity": "uploadCsvFilesToSDS",
+                "dependencyConditions": [ "Succeeded" ]
+              }
+            ],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": false,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "https://graph.microsoft.com/beta/education/synchronizationProfiles/@{pipeline().parameters.sdsProfileId}/start",
+                "type": "Expression"
+              },
+              "method": "POST",
+              "headers": {
+                "Authorization": {
+                  "value": "@concat('Bearer ',activity('GetBearerToken').output.access_token)",
+                  "type": "Expression"
+                }
+              },
+              "body": " "
+            }
+          },
+          {
+            "name": "GetAdminPassword",
+            "type": "WebActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@{pipeline().globalParameters.SdsAdminPasswordKeyVaultUrl}?api-version=7.0",
+                "type": "Expression"
+              },
+              "method": "GET",
+              "headers": {},
+              "authentication": {
+                "type": "MSI",
+                "resource": "https://vault.azure.net"
+              }
+            }
+          },
+          {
+            "name": "GetClientSecretForSdsApi",
+            "type": "WebActivity",
+            "dependsOn": [],
+            "policy": {
+              "timeout": "7.00:00:00",
+              "retry": 0,
+              "retryIntervalInSeconds": 30,
+              "secureOutput": true,
+              "secureInput": false
+            },
+            "userProperties": [],
+            "typeProperties": {
+              "url": {
+                "value": "@{pipeline().globalParameters.ClientSecretForSdsApiKeyVaultUrl}?api-version=7.0",
+                "type": "Expression"
+              },
+              "method": "GET",
+              "headers": {},
+              "authentication": {
+                "type": "MSI",
+                "resource": "https://vault.azure.net"
+              }
+            }
+          }
+        ],
+        "parameters": {
+          "directory": { "type": "string" },
+          "sdsProfileId": { "type": "string" }
+        },
+        "variables": {
+          "SASUrlParts": {
+            "type": "Array",
+            "defaultValue": []
+          }
+        },
+        "folder": { "name": "Sub pipelines" },
+        "annotations": [],
+        "lastPublishTime": "2020-09-19T12:47:37Z"
+      },
+      "dependsOn": [ "[concat(variables('factoryId'), '/datasets/CsvFile')]", "[concat(variables('factoryId'), '/datasets/SDS_syncprofile_storage')]" ]
+    },
+    {
+      "name": "[concat(parameters('factoryName'), '/SDS_syncprofile_storage')]",
+      "type": "Microsoft.DataFactory/factories/datasets",
+      "apiVersion": "2018-06-01",
+      "properties": {
+        "linkedServiceName": {
+          "referenceName": "[parameters('SDSBlobStorage')]",
+          "type": "LinkedServiceReference",
+          "parameters": {
+            "sasUriParam": {
+              "value": "@dataset().sasUriParam",
+              "type": "Expression"
+            }
+          }
+        },
+        "parameters": {
+          "sasUriParam": { "type": "string" },
+          "sdsProfileId": { "type": "string" }
+        },
+        "folder": { "name": "SchoolDataSync" },
+        "annotations": [],
+        "type": "DelimitedText",
+        "typeProperties": {
+          "location": {
+            "type": "AzureBlobStorageLocation",
+            "container": {
+              "value": "@dataset().sdsProfileId",
+              "type": "Expression"
+            }
+          },
+          "columnDelimiter": ",",
+          "escapeChar": "\\",
+          "quoteChar": "\""
+        },
+        "schema": []
+      },
+      "dependsOn": []
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+SIS ID,Name,School Number,School NCES_ID,Grade Low,Grade High,State ID,Principal SIS ID,Principal Name,Principal Secondary Email,Address,City,State,Zip,Country,Phone,Zone
+sch1,Gallagher Elementary,1,1,9,12,1,02100,Dennis Boone,dennis.boone@contosoisd3.onmicrosoft.com,77763,North Maryview,WA,98074,US,+1-074-391-5000x806,1
+sch2,King High,2,2,9,12,2,02100,Regina Carter,regina.carter@contosoisd3.onmicrosoft.com,1350,Lake Sarachester,WA,98074,US,656-115-9714x398,1
+sch3,Sawyer Elementary,3,3,9,12,3,02100,Joseph Erickson,joseph.erickson@contosoisd3.onmicrosoft.com,2747,South Josephton,WA,98074,US,151.702.8216x494,1
+sch4,Abbott High,4,4,9,12,4,02100,Andrew Richardson,andrew.richardson@contosoisd3.onmicrosoft.com,433,Michellehaven,WA,98074,US,583-714-6308x68716,1
+sch5,Thomas Elementary,5,5,9,12,5,02100,Eric Mcintyre,eric.mcintyre@contosoisd3.onmicrosoft.com,375,West Eric,WA,98074,US,+1-761-924-4908x026,1
+sch6,Rogers Elementary,6,6,9,12,6,02100,Jessica Short,jessica.short@contosoisd3.onmicrosoft.com,10673,Larsonville,WA,98074,US,(853)359-1507x0922,1
+sch7,Carter Elementary,7,7,9,12,7,02100,Willie Martin,willie.martin@contosoisd3.onmicrosoft.com,13006,Melissaton,WA,98074,US,8550908373,1
+sch8,Ross High,8,8,9,12,8,02100,Frank Clark,frank.clark@contosoisd3.onmicrosoft.com,5422,East Rhonda,WA,98074,US,438.677.8842x8984,1
+sch9,Jones Elementary,9,9,9,12,9,02100,Jessica Kim,jessica.kim@contosoisd3.onmicrosoft.com,5115,Port Danielfurt,WA,98074,US,863-147-9096,1

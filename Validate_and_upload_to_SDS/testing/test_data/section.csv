@@ -1,0 +1,105 @@
+SIS ID,School SIS ID,Section Name,Section Number,Term SIS ID,Term Name,Term StartDate,Term EndDate,Course SIS ID,Course Name,Course Number,Course Description,Course Subject,Periods,Status
+1,sch1,Math - Algebra 1,1,term1,Fall Semester,9/1/2019,12/22/2019,course1,Math - Algebra,1,Instruction covering Math - Algebra,Math - Algebra,2,Active
+2,sch1,English Language 2,2,term1,Fall Semester,9/1/2019,12/22/2019,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+3,sch1,Science Biology 3,3,term1,Fall Semester,9/1/2019,12/22/2019,course5,Science Biology,5,Instruction covering Science Biology,Science Biology,2,Active
+4,sch1,English Language 4,4,term1,Fall Semester,9/1/2019,12/22/2019,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+5,sch1,English Language 5,5,term1,Fall Semester,9/1/2019,12/22/2019,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+6,sch1,Art 6,6,term1,Fall Semester,9/1/2019,12/22/2019,course9,Art,9,Instruction covering Art,Art,2,Active
+7,sch1,Physical Education 7,7,term1,Fall Semester,9/1/2019,12/22/2019,course8,Physical Education,8,Instruction covering Physical Education,Physical Education,2,Active
+8,sch1,Math - Geometry 8,8,term1,Fall Semester,9/1/2019,12/22/2019,course2,Math - Geometry,2,Instruction covering Math - Geometry,Math - Geometry,2,Active
+9,sch1,Science Biology 9,9,term1,Fall Semester,9/1/2019,12/22/2019,course5,Science Biology,5,Instruction covering Science Biology,Science Biology,2,Active
+10,sch1,Physical Education 10,10,term1,Fall Semester,9/1/2019,12/22/2019,course8,Physical Education,8,Instruction covering Physical Education,Physical Education,2,Active
+11,sch1,Science Biology 11,11,term1,Fall Semester,9/1/2019,12/22/2019,course5,Science Biology,5,Instruction covering Science Biology,Science Biology,2,Active
+12,sch1,Math - Algebra 12,12,term1,Fall Semester,9/1/2019,12/22/2019,course1,Math - Algebra,1,Instruction covering Math - Algebra,Math - Algebra,2,Active
+13,sch1,Music 13,13,term1,Fall Semester,9/1/2019,12/22/2019,course10,Music,10,Instruction covering Music,Music,2,Active
+14,sch1,Art 14,14,term2,Spring Semester,1/21/2020,5/30/2020,course9,Art,9,Instruction covering Art,Art,2,Active
+15,sch1,English Language 15,15,term2,Spring Semester,1/21/2020,5/30/2020,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+16,sch1,Music 16,16,term2,Spring Semester,1/21/2020,5/30/2020,course10,Music,10,Instruction covering Music,Music,2,Active
+17,sch1,Technology - Programming 17,17,term2,Spring Semester,1/21/2020,5/30/2020,course7,Technology - Programming,7,Instruction covering Technology - Programming,Technology - Programming,2,Active
+18,sch1,English Language 18,18,term2,Spring Semester,1/21/2020,5/30/2020,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+19,sch1,English Language 19,19,term2,Spring Semester,1/21/2020,5/30/2020,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+20,sch1,Technology - Programming 20,20,term2,Spring Semester,1/21/2020,5/30/2020,course7,Technology - Programming,7,Instruction covering Technology - Programming,Technology - Programming,2,Active
+21,sch1,Science Biology 21,21,term2,Spring Semester,1/21/2020,5/30/2020,course5,Science Biology,5,Instruction covering Science Biology,Science Biology,2,Active
+22,sch1,Health 22,22,term2,Spring Semester,1/21/2020,5/30/2020,course6,Health,6,Instruction covering Health,Health,2,Active
+23,sch1,English Language 23,23,term2,Spring Semester,1/21/2020,5/30/2020,course3,English Language,3,Instruction covering English Language,English Language,2,Active
+24,sch1,Math - Algebra 24,24,term2,Spring Semester,1/21/2020,5/30/2020,course1,Math - Algebra,1,Instruction covering Math - Algebra,Math - Algebra,2,Active
+25,sch1,Music 25,25,term2,Spring Semester,1/21/2020,5/30/2020,course10,Music,10,Instruction covering Music,Music,2,Active
+26,sch1,Music 26,26,term2,Spring Semester,1/21/2020,5/30/2020,course10,Music,10,Instruction covering Music,Music,2,Active
+27,sch2,Health 27,27,term2,Fall Semester,9/1/2019,12/22/2019,course16,Health,16,Instruction covering Health,Health,2,Active
+28,sch2,Science Biology 28,28,term2,Fall Semester,9/1/2019,12/22/2019,course15,Science Biology,15,Instruction covering Science Biology,Science Biology,2,Active
+29,sch2,Math - Algebra 29,29,term2,Fall Semester,9/1/2019,12/22/2019,course11,Math - Algebra,11,Instruction covering Math - Algebra,Math - Algebra,2,Active
+30,sch2,Health 30,30,term2,Fall Semester,9/1/2019,12/22/2019,course16,Health,16,Instruction covering Health,Health,2,Active
+31,sch2,Math - Algebra 31,31,term2,Fall Semester,9/1/2019,12/22/2019,course11,Math - Algebra,11,Instruction covering Math - Algebra,Math - Algebra,2,Active
+32,sch2,Technology - Programming 32,32,term2,Fall Semester,9/1/2019,12/22/2019,course17,Technology - Programming,17,Instruction covering Technology - Programming,Technology - Programming,2,Active
+33,sch2,Physical Education 33,33,term2,Fall Semester,9/1/2019,12/22/2019,course18,Physical Education,18,Instruction covering Physical Education,Physical Education,2,Active
+34,sch2,English Language 34,34,term2,Fall Semester,9/1/2019,12/22/2019,course13,English Language,13,Instruction covering English Language,English Language,2,Active
+35,sch2,English Language 35,35,term2,Fall Semester,9/1/2019,12/22/2019,course13,English Language,13,Instruction covering English Language,English Language,2,Active
+36,sch2,Math - Algebra 36,36,term2,Fall Semester,9/1/2019,12/22/2019,course11,Math - Algebra,11,Instruction covering Math - Algebra,Math - Algebra,2,Active
+37,sch2,History - World History 37,37,term2,Fall Semester,9/1/2019,12/22/2019,course14,History - World History,14,Instruction covering History - World History,History - World History,2,Active
+38,sch2,Math - Geometry 38,38,term2,Fall Semester,9/1/2019,12/22/2019,course12,Math - Geometry,12,Instruction covering Math - Geometry,Math - Geometry,2,Active
+39,sch2,English Language 39,39,term2,Fall Semester,9/1/2019,12/22/2019,course13,English Language,13,Instruction covering English Language,English Language,2,Active
+40,sch2,Health 40,40,term3,Spring Semester,1/21/2020,5/30/2020,course16,Health,16,Instruction covering Health,Health,2,Active
+41,sch2,History - World History 41,41,term3,Spring Semester,1/21/2020,5/30/2020,course14,History - World History,14,Instruction covering History - World History,History - World History,2,Active
+42,sch2,Art 42,42,term3,Spring Semester,1/21/2020,5/30/2020,course19,Art,19,Instruction covering Art,Art,2,Active
+43,sch2,Technology - Programming 43,43,term3,Spring Semester,1/21/2020,5/30/2020,course17,Technology - Programming,17,Instruction covering Technology - Programming,Technology - Programming,2,Active
+44,sch2,Math - Geometry 44,44,term3,Spring Semester,1/21/2020,5/30/2020,course12,Math - Geometry,12,Instruction covering Math - Geometry,Math - Geometry,2,Active
+45,sch2,Science Biology 45,45,term3,Spring Semester,1/21/2020,5/30/2020,course15,Science Biology,15,Instruction covering Science Biology,Science Biology,2,Active
+46,sch2,History - World History 46,46,term3,Spring Semester,1/21/2020,5/30/2020,course14,History - World History,14,Instruction covering History - World History,History - World History,2,Active
+47,sch2,Math - Geometry 47,47,term3,Spring Semester,1/21/2020,5/30/2020,course12,Math - Geometry,12,Instruction covering Math - Geometry,Math - Geometry,2,Active
+48,sch2,Math - Algebra 48,48,term3,Spring Semester,1/21/2020,5/30/2020,course11,Math - Algebra,11,Instruction covering Math - Algebra,Math - Algebra,2,Active
+49,sch2,Physical Education 49,49,term3,Spring Semester,1/21/2020,5/30/2020,course18,Physical Education,18,Instruction covering Physical Education,Physical Education,2,Active
+50,sch2,Music 50,50,term3,Spring Semester,1/21/2020,5/30/2020,course20,Music,20,Instruction covering Music,Music,2,Active
+51,sch2,Math - Geometry 51,51,term3,Spring Semester,1/21/2020,5/30/2020,course12,Math - Geometry,12,Instruction covering Math - Geometry,Math - Geometry,2,Active
+52,sch2,Math - Algebra 52,52,term3,Spring Semester,1/21/2020,5/30/2020,course11,Math - Algebra,11,Instruction covering Math - Algebra,Math - Algebra,2,Active
+53,sch3,Music 53,53,term3,Fall Semester,9/1/2019,12/22/2019,course30,Music,30,Instruction covering Music,Music,2,Active
+54,sch3,Math - Geometry 54,54,term3,Fall Semester,9/1/2019,12/22/2019,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+55,sch3,Technology - Programming 55,55,term3,Fall Semester,9/1/2019,12/22/2019,course27,Technology - Programming,27,Instruction covering Technology - Programming,Technology - Programming,2,Active
+56,sch3,Math - Geometry 56,56,term3,Fall Semester,9/1/2019,12/22/2019,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+57,sch3,Math - Algebra 57,57,term3,Fall Semester,9/1/2019,12/22/2019,course21,Math - Algebra,21,Instruction covering Math - Algebra,Math - Algebra,2,Active
+58,sch3,Music 58,58,term3,Fall Semester,9/1/2019,12/22/2019,course30,Music,30,Instruction covering Music,Music,2,Active
+59,sch3,Math - Geometry 59,59,term3,Fall Semester,9/1/2019,12/22/2019,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+60,sch3,English Language 60,60,term3,Fall Semester,9/1/2019,12/22/2019,course23,English Language,23,Instruction covering English Language,English Language,2,Active
+61,sch3,Art 61,61,term3,Fall Semester,9/1/2019,12/22/2019,course29,Art,29,Instruction covering Art,Art,2,Active
+62,sch3,Math - Algebra 62,62,term3,Fall Semester,9/1/2019,12/22/2019,course21,Math - Algebra,21,Instruction covering Math - Algebra,Math - Algebra,2,Active
+63,sch3,History - World History 63,63,term3,Fall Semester,9/1/2019,12/22/2019,course24,History - World History,24,Instruction covering History - World History,History - World History,2,Active
+64,sch3,History - World History 64,64,term3,Fall Semester,9/1/2019,12/22/2019,course24,History - World History,24,Instruction covering History - World History,History - World History,2,Active
+65,sch3,History - World History 65,65,term3,Fall Semester,9/1/2019,12/22/2019,course24,History - World History,24,Instruction covering History - World History,History - World History,2,Active
+66,sch3,Technology - Programming 66,66,term4,Spring Semester,1/21/2020,5/30/2020,course27,Technology - Programming,27,Instruction covering Technology - Programming,Technology - Programming,2,Active
+67,sch3,Math - Geometry 67,67,term4,Spring Semester,1/21/2020,5/30/2020,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+68,sch3,Health 68,68,term4,Spring Semester,1/21/2020,5/30/2020,course26,Health,26,Instruction covering Health,Health,2,Active
+69,sch3,Art 69,69,term4,Spring Semester,1/21/2020,5/30/2020,course29,Art,29,Instruction covering Art,Art,2,Active
+70,sch3,Health 70,70,term4,Spring Semester,1/21/2020,5/30/2020,course26,Health,26,Instruction covering Health,Health,2,Active
+71,sch3,Health 71,71,term4,Spring Semester,1/21/2020,5/30/2020,course26,Health,26,Instruction covering Health,Health,2,Active
+72,sch3,Music 72,72,term4,Spring Semester,1/21/2020,5/30/2020,course30,Music,30,Instruction covering Music,Music,2,Active
+73,sch3,English Language 73,73,term4,Spring Semester,1/21/2020,5/30/2020,course23,English Language,23,Instruction covering English Language,English Language,2,Active
+74,sch3,English Language 74,74,term4,Spring Semester,1/21/2020,5/30/2020,course23,English Language,23,Instruction covering English Language,English Language,2,Active
+75,sch3,Science Biology 75,75,term4,Spring Semester,1/21/2020,5/30/2020,course25,Science Biology,25,Instruction covering Science Biology,Science Biology,2,Active
+76,sch3,Health 76,76,term4,Spring Semester,1/21/2020,5/30/2020,course26,Health,26,Instruction covering Health,Health,2,Active
+77,sch3,Math - Geometry 77,77,term4,Spring Semester,1/21/2020,5/30/2020,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+78,sch3,Math - Geometry 78,78,term4,Spring Semester,1/21/2020,5/30/2020,course22,Math - Geometry,22,Instruction covering Math - Geometry,Math - Geometry,2,Active
+79,sch4,Math - Geometry 79,79,term4,Fall Semester,9/1/2019,12/22/2019,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active
+80,sch4,Health 80,80,term4,Fall Semester,9/1/2019,12/22/2019,course36,Health,36,Instruction covering Health,Health,2,Active
+81,sch4,Science Biology 81,81,term4,Fall Semester,9/1/2019,12/22/2019,course35,Science Biology,35,Instruction covering Science Biology,Science Biology,2,Active
+82,sch4,Music 82,82,term4,Fall Semester,9/1/2019,12/22/2019,course40,Music,40,Instruction covering Music,Music,2,Active
+83,sch4,Music 83,83,term4,Fall Semester,9/1/2019,12/22/2019,course40,Music,40,Instruction covering Music,Music,2,Active
+84,sch4,Math - Algebra 84,84,term4,Fall Semester,9/1/2019,12/22/2019,course31,Math - Algebra,31,Instruction covering Math - Algebra,Math - Algebra,2,Active
+85,sch4,Science Biology 85,85,term4,Fall Semester,9/1/2019,12/22/2019,course35,Science Biology,35,Instruction covering Science Biology,Science Biology,2,Active
+86,sch4,Math - Geometry 86,86,term4,Fall Semester,9/1/2019,12/22/2019,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active
+87,sch4,English Language 87,87,term4,Fall Semester,9/1/2019,12/22/2019,course33,English Language,33,Instruction covering English Language,English Language,2,Active
+88,sch4,Science Biology 88,88,term4,Fall Semester,9/1/2019,12/22/2019,course35,Science Biology,35,Instruction covering Science Biology,Science Biology,2,Active
+89,sch4,Math - Geometry 89,89,term4,Fall Semester,9/1/2019,12/22/2019,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active
+90,sch4,Physical Education 90,90,term4,Fall Semester,9/1/2019,12/22/2019,course38,Physical Education,38,Instruction covering Physical Education,Physical Education,2,Active
+91,sch4,Math - Geometry 91,91,term4,Fall Semester,9/1/2019,12/22/2019,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active
+92,sch4,Math - Algebra 92,92,term5,Spring Semester,1/21/2020,5/30/2020,course31,Math - Algebra,31,Instruction covering Math - Algebra,Math - Algebra,2,Active
+93,sch4,English Language 93,93,term5,Spring Semester,1/21/2020,5/30/2020,course33,English Language,33,Instruction covering English Language,English Language,2,Active
+94,sch4,Math - Geometry 94,94,term5,Spring Semester,1/21/2020,5/30/2020,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active
+95,sch4,Music 95,95,term5,Spring Semester,1/21/2020,5/30/2020,course40,Music,40,Instruction covering Music,Music,2,Active
+96,sch4,Physical Education 96,96,term5,Spring Semester,1/21/2020,5/30/2020,course38,Physical Education,38,Instruction covering Physical Education,Physical Education,2,Active
+97,sch4,English Language 97,97,term5,Spring Semester,1/21/2020,5/30/2020,course33,English Language,33,Instruction covering English Language,English Language,2,Active
+98,sch4,Music 98,98,term5,Spring Semester,1/21/2020,5/30/2020,course40,Music,40,Instruction covering Music,Music,2,Active
+99,sch4,Science Biology 99,99,term5,Spring Semester,1/21/2020,5/30/2020,course35,Science Biology,35,Instruction covering Science Biology,Science Biology,2,Active
+100,sch4,Art 100,100,term5,Spring Semester,1/21/2020,5/30/2020,course39,Art,39,Instruction covering Art,Art,2,Active
+101,sch4,Art 101,101,term5,Spring Semester,1/21/2020,5/30/2020,course39,Art,39,Instruction covering Art,Art,2,Active
+102,sch4,Physical Education 102,102,term5,Spring Semester,1/21/2020,5/30/2020,course38,Physical Education,38,Instruction covering Physical Education,Physical Education,2,Active
+103,sch4,Physical Education 103,103,term5,Spring Semester,1/21/2020,5/30/2020,course38,Physical Education,38,Instruction covering Physical Education,Physical Education,2,Active
+104,sch4,Math - Geometry 104,104,term5,Spring Semester,1/21/2020,5/30/2020,course32,Math - Geometry,32,Instruction covering Math - Geometry,Math - Geometry,2,Active

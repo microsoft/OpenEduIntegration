@@ -1,0 +1,5 @@
+SIS ID,Name,School Number,School NCES_ID,Grade Low,Grade High,State ID,Principal SIS ID,Principal Name,Principal Secondary Email,Address,City,State,Zip,Country,Phone,Zone
+sch1,Gallagher Middle,1,1,9,12,1,02100,Dennis Boone,dennis.boone@contosoisd3.onmicrosoft.com,77763,North Maryview,WA,98074,US,+1-074-391-5000x806,1
+sch2,King High,2,2,9,12,2,02100,Regina Carter,regina.carter@contosoisd3.onmicrosoft.com,1350,Lake Sarachester,WA,98074,US,656-115-9714x398,1
+sch3,Sawyer High,3,3,9,12,3,02100,Joseph Erickson,joseph.erickson@contosoisd3.onmicrosoft.com,2747,South Josephton,WA,98074,US,151.702.8216x494,1
+sch4,Abbott Elementary,4,4,9,12,4,02100,Andrew Richardson,andrew.richardson@contosoisd3.onmicrosoft.com,433,Michellehaven,WA,98074,US,583-714-6308x68716,1
